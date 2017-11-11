@@ -39,26 +39,27 @@ if name and name in settings.INSTALLED_APPS:
             else:
                 return mailer_send_mail(subject, message, from_email, recipient_list, **kwargs)
 else:
-    from django.core.mail import send_mail
-    if VERSION < (1, 7):
-        from django.core.mail import EmailMultiAlternatives
-        legacy_send_mail = send_mail
-        def send_mail(subject, message, from_email, recipient_list, **kwargs):
-            html_message = kwargs.pop('html_message', None)
-            if html_message:
-                send_kwargs = {}
-                fail_silently = kwargs.pop('fail_silently', None)
-                if fail_silently is not None:
-                    send_kwargs['fail_silently'] = fail_silently
-                return EmailMultiAlternatives(subject, message, from_email, recipient_list,
-                        alternatives=[(html_message, 'text/html')], **kwargs).send(**send_kwargs)
-            else:
-                return legacy_send_mail(subject, message, from_email, recipient_list, **kwargs)
+    # A substitution of django.core.mail.send_mail() to allow extra parameters,
+    # such as: headers, reply_to (as of Django 1.8),
+    # while keeping the signature pattern for compatibility with a possible third-party mailer app.
+    from django.core.mail import EmailMultiAlternatives
+    def send_mail(subject, message, from_email, recipient_list, **kwargs):
+        html_message = kwargs.pop('html_message', None)
+        send_kwargs = {}
+        fail_silently = kwargs.pop('fail_silently', None)
+        if fail_silently is not None:
+            send_kwargs['fail_silently'] = fail_silently
+        msg = EmailMultiAlternatives(subject, message, from_email, recipient_list, **kwargs)
+        if html_message:
+            msg.attach_alternative(html_message, 'text/html')
+        return msg.send(**send_kwargs)
 
 # to disable email notification to users
 DISABLE_USER_EMAILING = getattr(settings, 'POSTMAN_DISABLE_USER_EMAILING', False)
 # custom default 'from'
-POSTMAN_FROM_EMAIL = getattr(settings, 'POSTMAN_FROM_EMAIL', settings.DEFAULT_FROM_EMAIL)
+FROM_EMAIL = getattr(settings, 'POSTMAN_FROM_EMAIL', settings.DEFAULT_FROM_EMAIL)
+# custom parameters for emailing
+PARAMS_EMAIL = getattr(settings, 'POSTMAN_PARAMS_EMAIL', None)
 
 # default wrap width; referenced in forms.py
 WRAP_WIDTH = 55
@@ -97,26 +98,29 @@ def format_subject(subject):
 
 def email(subject_template, message_template_name, recipient_list, object, action, site):
     """Compose and send an email."""
-    ctx_dict = {'site': site, 'object': object, 'action': action}
-    subject = render_to_string(subject_template, ctx_dict)
+    context = {'site': site, 'object': object, 'action': action}
+    subject = render_to_string(subject_template, context)
     # Email subject *must not* contain newlines
     subject = ''.join(subject.splitlines())
 
     # look for html and/or txt versions
     try:
-        html_message = render_to_string(message_template_name + '.html', ctx_dict)
+        html_message = render_to_string(message_template_name + '.html', context)
     except TemplateDoesNotExist:
         html_message = None
     try:
-        message = render_to_string(message_template_name + '.txt', ctx_dict)
+        message = render_to_string(message_template_name + '.txt', context)
         if message == '':
             raise TemplateDoesNotExist("The .txt template can't be empty when the .html template doesn't exist")
     except TemplateDoesNotExist as e:
         if html_message is None:
             raise e  # At least a .html or a .txt template must be usable
         message = strip_tags(html_message)  # fallback
+
+    kwargs = PARAMS_EMAIL(context) if PARAMS_EMAIL else {}
+
     # during the development phase, consider using the setting: EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    send_mail(subject, message, POSTMAN_FROM_EMAIL, recipient_list, fail_silently=True, html_message=html_message)
+    send_mail(subject, message, FROM_EMAIL, recipient_list, fail_silently=True, html_message=html_message, **kwargs)
 
 
 def email_visitor(object, action, site):

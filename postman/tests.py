@@ -45,10 +45,10 @@ from django.contrib.sites.models import Site
 from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.core.urlresolvers import reverse, clear_url_caches, get_resolver, get_urlconf
+from django.core.urlresolvers import clear_url_caches, get_resolver, get_urlconf, reverse
 from django.db.models import Q
 from django.http import QueryDict
-from django.template import Template, Context, TemplateSyntaxError, TemplateDoesNotExist
+from django.template import Context, Template, TemplateDoesNotExist, TemplateSyntaxError
 from django.test import TestCase, TransactionTestCase
 if VERSION >= (1, 10):
     from django.test import override_settings
@@ -58,7 +58,7 @@ from django.utils import six
 from django.utils.six import StringIO
 from django.utils.six.moves import reload_module
 from django.utils.timezone import localtime, now
-from django.utils.translation import activate, deactivate
+from django.utils.translation import activate
 
 from .api import pm_broadcast, pm_write
 # because of reload()'s, do "from postman.fields import CommaSeparatedUserField" just before needs
@@ -67,7 +67,7 @@ from .models import OPTION_MESSAGES, ORDER_BY_KEY, ORDER_BY_MAPPER, Message, Pen
         STATUS_PENDING, STATUS_ACCEPTED, STATUS_REJECTED,\
         get_order_by, get_user_representation, get_user_name
 # because of reload()'s, do "from postman.utils import notification" just before needs
-from .utils import format_body, format_subject, email
+from .utils import format_body, format_subject, email, email_visitor, notify_user
 
 # added for 1.8, for the client side, to supersede the default language set as soon as the creation of auth's permissions,
 # initiated via a post_migrate signal.
@@ -1913,6 +1913,35 @@ class UtilsTest(BaseTest):
         settings.POSTMAN_FROM_EMAIL = custom_from_email
         self.reload_modules()
         self.check_from_email(subject_template, message_template_name, recipient_list, m, action, site, custom_from_email)
+
+    def test_params_email(self):
+        "Test the POSTMAN_PARAMS_EMAIL setting."
+        m = self.c12()
+        action = 'acceptance'
+        site = None
+        settings.POSTMAN_PARAMS_EMAIL = lambda context: {
+            'headers': {'Reply-To': 'someone@domain.tld', 'X-my-choice': 'my-value'}
+        } if VERSION < (1, 8) else {
+            'reply_to': ['someone@domain.tld'],
+            'headers': {'X-my-choice': 'my-value'}
+        }
+        self.reload_modules()
+
+        email_visitor(m, action, site)  # doesn't matter if the email is missing
+        msg = mail.outbox[0]
+        if VERSION < (1, 8):
+            self.assertEqual(msg.extra_headers['Reply-To'], 'someone@domain.tld')
+        else:
+            self.assertEqual(msg.reply_to, ['someone@domain.tld'])
+        self.assertEqual(msg.extra_headers['X-my-choice'], 'my-value')
+
+        notify_user(m, action, site)
+        msg = mail.outbox[1]
+        if VERSION < (1, 8):
+            self.assertEqual(msg.extra_headers['Reply-To'], 'someone@domain.tld')
+        else:
+            self.assertEqual(msg.reply_to, ['someone@domain.tld'])
+        self.assertEqual(msg.extra_headers['X-my-choice'], 'my-value')
 
     def test_get_order_by(self):
         "Test get_order_by()."

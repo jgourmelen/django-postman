@@ -96,6 +96,32 @@ You may specify some additional configuration options in your :file:`settings.py
 
     *Defaults to*: DEFAULT_FROM_EMAIL.
 
+``POSTMAN_PARAMS_EMAIL``
+    *New in version 3.6.0.*
+
+    You can customize the sending of emails by this means.
+    The value is a function, receiving one parameter: a dictionary with the same context variables
+    as for the subject and body template rendering: {'site': ..., 'object': ..., 'action': ...}.
+    The return must be a dictionary, possibly empty, with django.core.mail.EmailMessage parameters as keys.
+
+    *Defaults to*: None.
+
+    Example::
+
+        def get_params_email(context):
+            return {
+                'reply_to': ['someone@domain.tld'],
+                'headers': {'X-my-choice': 'my-value'}
+            } if context['action'] == 'acceptance' else {}
+        POSTMAN_PARAMS_EMAIL = get_params_email  # default is None
+
+    Notes:
+
+    * 'reply_to' is available as of Django 1.8. For previous versions, you can embed it under 'headers' as:
+      ``{'Reply-To': 'someone@domain.tld'}``
+    * In case of use of django-mailer (v1.2.2), only 'headers' is supported and
+      to the condition that a HTML-version email template is involved.
+
 ``POSTMAN_AUTO_MODERATE_AS``
     The default moderation status when no auto-moderation functions, if any, were decisive.
 
@@ -257,9 +283,11 @@ Examples
     # POSTMAN_DISALLOW_MULTIRECIPIENTS = True  # default is False
     # POSTMAN_DISALLOW_COPIES_ON_REPLY = True  # default is False
     # POSTMAN_DISABLE_USER_EMAILING = True  # default is False
+    # POSTMAN_FROM_EMAIL = 'from@host.tld'  # default is DEFAULT_FROM_EMAIL
+    # POSTMAN_PARAMS_EMAIL = get_params_email  # default is None
     # POSTMAN_AUTO_MODERATE_AS = True  # default is None
     # POSTMAN_SHOW_USER_AS = 'get_full_name'  # default is None
-	# POSTMAN_NAME_USER_AS = 'last_name'  # default is None
+    # POSTMAN_NAME_USER_AS = 'last_name'  # default is None
     # POSTMAN_QUICKREPLY_QUOTE_BODY = True  # default is False
     # POSTMAN_NOTIFIER_APP = None  # default is 'notification'
     # POSTMAN_MAILER_APP = None  # default is 'mailer'
