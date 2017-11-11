@@ -8,7 +8,10 @@ from django import VERSION
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib.auth.views import login
-from django.core.urlresolvers import reverse_lazy
+if VERSION < (1, 10):
+    from django.core.urlresolvers import reverse_lazy
+else:
+    from django.urls import reverse_lazy
 from django.forms import ValidationError
 if getattr(settings, 'POSTMAN_I18N_URLS', False):
     from django.utils.translation import pgettext_lazy
@@ -77,11 +80,7 @@ postman_patterns = [
     url(pgettext_lazy('postman_url', r'^undelete/$'), UndeleteView.as_view(), name='undelete'),
     url(pgettext_lazy('postman_url', r'^mark-read/$'), MarkReadView.as_view(), name='mark-read'),
     url(pgettext_lazy('postman_url', r'^mark-unread/$'), MarkUnreadView.as_view(), name='mark-unread'),
-    # Django 1.9 "HTTP redirects no longer forced to absolute URIs"
-    # and test.Client doesn't support relative-path reference, such as url='inbox/' ; ticket/26428
-    url(r'^$', RedirectView.as_view(
-        url=reverse_lazy('postman:inbox') if VERSION >= (1, 9) and VERSION < (1, 9, 6) else 'inbox/',
-        permanent=True)),
+    url(r'^$', RedirectView.as_view(url=reverse_lazy('postman:inbox'), permanent=True)),
 
     # Customized set
     # 'success_url'

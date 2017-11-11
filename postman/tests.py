@@ -45,7 +45,10 @@ from django.contrib.sites.models import Site
 from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.core.urlresolvers import clear_url_caches, get_resolver, get_urlconf, reverse
+if VERSION < (1, 10):
+    from django.core.urlresolvers import clear_url_caches, get_resolver, get_urlconf, resolve, reverse
+else:
+    from django.urls import clear_url_caches, get_resolver, get_urlconf, resolve, reverse
 from django.db.models import Q
 from django.http import QueryDict
 from django.template import Context, Template, TemplateDoesNotExist, TemplateSyntaxError
@@ -267,6 +270,21 @@ class ViewTest(BaseTest):
 
     def test_trash(self):
         self.check_folder('trash')
+
+    def test_i18n_urls(self):
+        "Test the POSTMAN_I18N_URLS setting."
+        settings.POSTMAN_I18N_URLS = True
+        self.reload_modules()
+        activate('fr')
+
+        url = reverse('postman:inbox')  # do not test all urls, one is enough for proof
+        self.assertEqual(url, '/messages/re%C3%A7us/')
+
+        match = resolve('/messages/')  # check the index special case, redirected to inbox
+        self.assertEqual(match.func.view_initkwargs['url'], '/messages/re%C3%A7us/')
+        # reset, otherwise 'postman:inbox' keeps its lazy translation and the following test_inbox will fail
+        settings.POSTMAN_I18N_URLS = False
+        self.reload_modules()
 
     def check_template(self, action, args):
         # don't want to bother with additional templates; test only the parameter passing

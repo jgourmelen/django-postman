@@ -88,8 +88,13 @@ Refer to documentation.
 """
 from __future__ import unicode_literals
 
+from django import VERSION
 from django.conf import settings
 from django.conf.urls import url
+if VERSION < (1, 10):
+    from django.core.urlresolvers import reverse_lazy
+else:
+    from django.urls import reverse_lazy
 if getattr(settings, 'POSTMAN_I18N_URLS', False):
     from django.utils.translation import pgettext_lazy
 else:
@@ -120,5 +125,5 @@ urlpatterns = [
     url(pgettext_lazy('postman_url', r'^undelete/$'), UndeleteView.as_view(), name='undelete'),
     url(pgettext_lazy('postman_url', r'^mark-read/$'), MarkReadView.as_view(), name='mark-read'),
     url(pgettext_lazy('postman_url', r'^mark-unread/$'), MarkUnreadView.as_view(), name='mark-unread'),
-    url(r'^$', RedirectView.as_view(url='inbox/', permanent=True)),
+    url(r'^$', RedirectView.as_view(url=reverse_lazy('postman:inbox'), permanent=True)),
 ]

@@ -5,9 +5,13 @@ try:
 except ImportError:
     from django.utils.importlib import import_module  # Django 1.6 / py2.6
 
+from django import VERSION
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+if VERSION < (1, 10):
+    from django.core.urlresolvers import reverse
+else:
+    from django.urls import reverse
 from django.db import models
 from django.db.models.query import QuerySet
 from django.utils import six
