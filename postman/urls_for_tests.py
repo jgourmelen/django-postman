@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 from django import VERSION
 from django.conf import settings
 from django.conf.urls import include, url
-from django.contrib.auth.views import login
+from django.contrib.auth import views as auth_views
 if VERSION < (1, 10):
     from django.core.urlresolvers import reverse_lazy
 else:
@@ -133,7 +133,7 @@ postman_patterns = [
 ]
 
 urlpatterns = [
-    url(r'^accounts/login/$', login),  # because of the login_required decorator
+    url(r'^accounts/login/$', auth_views.login if VERSION < (1, 11) else auth_views.LoginView.as_view()),  # because of the login_required decorator
     url(r'^messages/',
         # (<patterns object>, <application namespace>, <instance namespace>)
         include((postman_patterns, 'postman', 'postman')) if VERSION < (1, 9)

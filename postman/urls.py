@@ -105,7 +105,7 @@ from .views import (InboxView, SentView, ArchivesView, TrashView,
         WriteView, ReplyView, MessageView, ConversationView,
         ArchiveView, DeleteView, UndeleteView, MarkReadView, MarkUnreadView)
 
-
+app_name = 'postman'
 urlpatterns = [
     # Translators: keep consistency of the <option> parameter with the translation for 'm'
     url(pgettext_lazy('postman_url', r'^inbox/(?:(?P<option>m)/)?$'), InboxView.as_view(), name='inbox'),

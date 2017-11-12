@@ -730,7 +730,9 @@ class ViewTest(BaseTest):
         from postman.forms import QuickReplyForm
         self.assertTrue(isinstance(response.context['form'], QuickReplyForm))
         self.assertNotContains(response, 'value="Re: s"')
-        self.assertContains(response, '>\r\n</textarea>')  # as in django\forms\widgets.py\Textarea
+        # before Django 1.11, in django\forms\widgets.py\Textarea : '>\r\n</textarea>'
+        # after, in django\forms\templates\django\forms\widgets\textarea.html : '>\n</textarea>'
+        self.assertContains(response, '\n</textarea>')
         self.check_status(Message.objects.get(pk=pk2), status=STATUS_ACCEPTED, is_new=False)
 
         settings.POSTMAN_QUICKREPLY_QUOTE_BODY = True
@@ -783,7 +785,7 @@ class ViewTest(BaseTest):
         from postman.forms import QuickReplyForm
         self.assertTrue(isinstance(response.context['form'], QuickReplyForm))
         self.assertNotContains(response, 'value="Re: s"')
-        self.assertContains(response, '>\r\n</textarea>')  # as in django\forms\widgets.py\Textarea
+        self.assertContains(response, '\n</textarea>')  # same comment as in test_view_authentication
         self.assertEqual(len(response.context['pm_messages']), 2)
         self.check_status(Message.objects.get(pk=m2.pk), status=STATUS_ACCEPTED, is_new=False, parent=m1, thread=m1)
 
@@ -1945,7 +1947,10 @@ class UtilsTest(BaseTest):
         }
         self.reload_modules()
 
-        email_visitor(m, action, site)  # doesn't matter if the email is missing
+        # sender+email+recipient is not regular, but if Django 1.10 doesn't mind if the email is missing,
+        # Django 1.11 doesn't send without at least one recipient (empty strings are filtered).
+        m.email = self.email
+        email_visitor(m, action, site)
         msg = mail.outbox[0]
         if VERSION < (1, 8):
             self.assertEqual(msg.extra_headers['Reply-To'], 'someone@domain.tld')
