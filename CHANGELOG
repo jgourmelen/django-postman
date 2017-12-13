@@ -2,6 +2,10 @@
 Django Postman changelog
 ========================
 
+Version 3.6.1, December 2017
+----------------------------
+- Fixed issue #98, a User.isXXX() adjustment missed in rev152.
+
 Version 3.6.0, November 2017
 ----------------------------
 * Fixed issue #96, an adjustment for Django 2.0 (rc1).
