@@ -24,7 +24,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     # 'django.contrib.sites',  # is optional
     'django.contrib.admin',
-    # 'pagination',  # has to be before postman ; or use the mock
+    # 'dj_pagination',  # has to be before postman ; or use the mock
     # 'ajax_select',  # is an option
     # 'notification',  # is an option
     'postman',
