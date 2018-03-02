@@ -270,7 +270,7 @@ Examples
 :file:`settings.py`::
 
     INSTALLED_APPS = (
-        # 'pagination'  # has to be before postman
+        # 'dj_pagination'  # has to be before postman
         # ...
         'postman',
         # ...
