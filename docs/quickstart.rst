@@ -22,13 +22,13 @@ Some reasons:
 
 Installation
 ------------
-Get the code from the repository, which is hosted at `Bitbucket <http://bitbucket.org/>`_.
+Get the code from the repository, which is hosted at `Bitbucket <https://bitbucket.org/>`_.
 
 You have two main ways to obtain the latest code and documentation:
 
 With the version control software Mercurial installed, get a local copy by typing::
 
-    hg clone http://bitbucket.org/psam/django-postman/
+    hg clone https://bitbucket.org/psam/django-postman/
 
 Or download a copy of the package, which is available in several compressed formats,
 either from the ``Download`` tab or from the ``get source`` menu option.
@@ -199,13 +199,13 @@ You may specify some additional configuration options in your :file:`settings.py
 
     * 'name'
         The name of the auto-completer application.
-        Defaults to 'ajax_select'
+        Defaults to 'ajax_select'.
     * 'field'
         The model class name.
-        Defaults to 'AutoCompleteField'
+        Defaults to 'AutoCompleteField'.
     * 'arg_name'
-        The name of the argument
-        Defaults to 'channel'
+        The name of the argument.
+        Defaults to 'channel'.
     * 'arg_default'
         No default value. This is a mandatory default value, but you may supersede it in the field
         definition of a custom form or pass it in the url pattern definitions.
@@ -222,7 +222,7 @@ Don't forget that you shouldn't modify the templates provided into the package
 (changes are lost with an application update) but use a copied set pointed to by the ``DIRS`` entry in TEMPLATES setting.
 
 You may need to adjust some templates to match your version of Django.
-Permute the comment tags for the lines denoted by the marks: {# dj v1.x #} in:
+Permute the comment tags for the lines denoted by the marks: ``{# dj v1.x #}`` in:
 
 * (currently no case)
 
@@ -253,7 +253,7 @@ Static Files
 ~~~~~~~~~~~~
 
 A CSS file is provided with the application, for the Admin site: :file:`postman/css/admin.css`.
-It is not obligatory but makes the display more confortable.
+It is not mandatory but makes the display more comfortable.
 
 A basic CSS file is provided to style the views: :file:`postman/css/postman.css`.
 You may use it as a starting point to make your own design.
