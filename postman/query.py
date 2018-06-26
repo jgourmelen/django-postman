@@ -70,7 +70,7 @@ class CompilerProxy(Proxy, SQLCompiler):
         new_sql = [
             sql[:index],
             ' {0} ({1}) {2} ON ({3}.{4} = {2}.{5})'.format(
-                inner_join, extra_table, self.query.pm_alias_prefix, qn(alias), qn2('id'), qn2('id')),
+                inner_join, extra_table, self.query.pm_alias_prefix, qn(alias), qn2(self.query.model._meta.pk.column), qn2(self.query.model._meta.pk.column)),
         ]
         if index < len(sql):
             new_sql.append(sql[index:])
