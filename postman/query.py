@@ -84,12 +84,19 @@ class CompilerProxy(Proxy, SQLCompiler):
         """
         Join several querysets by a UNION clause. Returns the SQL string and the list of parameters.
         """
-        result_sql, result_params = [], []
-        for qs in querysets:
-            sql, params = qs.query.sql_with_params()
-            result_sql.append(sql)
-            result_params.extend(params)
-        return ' UNION '.join(result_sql), tuple(result_params)
+        # union() is "New in Django 1.11." (docs site)
+        # but buggy in 2.0, with a backport in 1.11.8 ; my ticket 29229, fixed in 1.11.12 & 2.0.4
+        # for simplicity, let's even ignore the usable 1.11.0-7 frame
+        if VERSION < (1, 11, 12) or (2, 0) <= VERSION < (2, 0, 4):
+            result_sql, result_params = [], []
+            for qs in querysets:
+                sql, params = qs.query.sql_with_params()
+                result_sql.append(sql)
+                result_params.extend(params)
+            return ' UNION '.join(result_sql), tuple(result_params)
+        else:
+            qs = querysets[0].union(*querysets[1:])
+            return qs.query.sql_with_params()
 
 
 class PostmanQuery(Query):
