@@ -67,10 +67,12 @@ class CompilerProxy(Proxy, SQLCompiler):
             inner_join = self.query.INNER
         index = sql.index(clause) + len(clause)
         extra_table, extra_params = self.union(self.query.pm_get_extra())
+        opts = self.query.get_meta()
+        qn2_pk_col = qn2(opts.pk.column)  # usually 'id' but not in case of model inheritance
         new_sql = [
             sql[:index],
             ' {0} ({1}) {2} ON ({3}.{4} = {2}.{5})'.format(
-                inner_join, extra_table, self.query.pm_alias_prefix, qn(alias), qn2(self.query.model._meta.pk.column), qn2(self.query.model._meta.pk.column)),
+                inner_join, extra_table, self.query.pm_alias_prefix, qn(alias), qn2_pk_col, qn2_pk_col),
         ]
         if index < len(sql):
             new_sql.append(sql[index:])
