@@ -424,8 +424,8 @@ class ViewTest(BaseTest):
         response = self.client.post(url_with_success_url, data, HTTP_REFERER=url)
         self.assertRedirects(response, reverse('postman:sent'), target_status_code=302 if is_anonymous else 200)
         self.check_message(Message.objects.get(pk=pk+2), is_anonymous)
-        # query string has highest precedence
-        response = self.client.post(url_with_success_url + '?next=' + url, data, HTTP_REFERER='does not matter')
+        # query string has highest precedence ; scheme and domain are silently ignored
+        response = self.client.post(url_with_success_url + '?next=any://any.tld' + url, data, HTTP_REFERER='does not matter')
         self.assertRedirects(response, url)
         self.check_message(Message.objects.get(pk=pk+3), is_anonymous)
 
@@ -623,8 +623,8 @@ class ViewTest(BaseTest):
         response = self.client.post(url_with_success_url, data, HTTP_REFERER=url)
         self.assertRedirects(response, reverse('postman:sent'))
         self.check_message(Message.objects.get(pk=pk+3))
-        # query string has highest precedence
-        response = self.client.post(url_with_success_url + '?next=' + url, data, HTTP_REFERER='does not matter')
+        # query string has highest precedence ; scheme and domain are silently ignored
+        response = self.client.post(url_with_success_url + '?next=any://any.tld' + url, data, HTTP_REFERER='does not matter')
         self.assertRedirects(response, url)
         self.check_message(Message.objects.get(pk=pk+4))
         # missing subject is valid, as in quick reply
@@ -867,9 +867,9 @@ class ViewTest(BaseTest):
         m1.save()
         response = self.client.post(url_with_success_url, data, HTTP_REFERER=redirect_url)
         self.assertRedirects(response, reverse('postman:archives'))
-        # query string has highest precedence
+        # query string has highest precedence ; scheme and domain are silently ignored
         m1.save()
-        response = self.client.post(url_with_success_url + '?next=' + redirect_url, data, HTTP_REFERER='does not matter')
+        response = self.client.post(url_with_success_url + '?next=any://any.tld' + redirect_url, data, HTTP_REFERER='does not matter')
         self.assertRedirects(response, redirect_url)
         # missing payload
         response = self.client.post(url, follow=True)

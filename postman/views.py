@@ -46,6 +46,12 @@ def _get_referer(request):
         return urlunsplit(('', '', sr.path, sr.query, sr.fragment))
 
 
+def _get_safe_internal_url(urlstring):
+    """Return the URL without the scheme part and the domain part, if present."""
+    sr = urlsplit(urlstring)
+    return urlunsplit(('', '', sr.path, sr.query, sr.fragment))
+
+
 ########
 # Views
 ########
@@ -185,7 +191,7 @@ class ComposeMixin(NamespaceMixin, object):
         return kwargs
 
     def get_success_url(self):
-        return self.request.GET.get('next') or self.success_url or _get_referer(self.request) or 'postman:inbox'
+        return _get_safe_internal_url(self.request.GET.get('next')) or self.success_url or _get_referer(self.request) or 'postman:inbox'
 
     def form_valid(self, form):
         params = {'auto_moderators': self.auto_moderators}
@@ -413,7 +419,7 @@ class UpdateMessageMixin(object):
             filter = Q(pk__in=pks) | Q(thread__in=tpks)
             self._action(user, filter)
             messages.success(request, self.success_msg, fail_silently=True)
-            return redirect(request.GET.get('next') or self.success_url or next_url)
+            return redirect(_get_safe_internal_url(request.GET.get('next')) or self.success_url or next_url)
         else:
             messages.warning(request, _("Select at least one object."), fail_silently=True)
             return redirect(next_url)
