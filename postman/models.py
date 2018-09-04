@@ -13,6 +13,8 @@ if VERSION < (1, 10):
 else:
     from django.urls import reverse
 from django.db import models
+from django.db.models import IntegerField, Value
+from django.db.models.expressions import RawSQL
 from django.db.models.query import QuerySet
 from django.utils import six
 from django.utils.encoding import force_text, python_2_unicode_compatible
@@ -140,14 +142,12 @@ class MessageManager(models.Manager):
             # should not be necessary. Otherwise add:
             # .extra(select={'count': 'SELECT 1'})
         else:
-            qs = qs.extra(select={'count': '{0}.count'.format(qs.query.pm_alias_prefix)})
+            qs = qs.annotate(count=RawSQL('{0}.count'.format(qs.query.pm_alias_prefix), ()))
             qs.query.pm_set_extra(table=(
-                # extra columns are always first in the SELECT query
-                # for tests with the version 2.4.1 of sqlite3 in py26, add to the select: , 'id': 'postman_message.id'
-                self.filter(lookups, thread_id__isnull=True).extra(select={'count': 0})\
+                self.filter(lookups, thread_id__isnull=True).annotate(count=Value(0, IntegerField()))\
                     .values_list('id', 'count').order_by(),
                 # use separate annotate() to keep control of the necessary order
-                self.filter(lookups, thread_id__isnull=False).values('thread').annotate(count=models.Count('pk')).annotate(id=models.Max('pk'))\
+                self.filter(lookups, thread_id__isnull=False).values('thread').annotate(id=models.Max('pk')).annotate(count=models.Count('pk'))\
                     .values_list('id', 'count').order_by(),
             ))
             return qs
@@ -169,7 +169,7 @@ class MessageManager(models.Manager):
         """
         Return the number of unread messages for a user.
 
-        Designed for context_processors.py and templatetags/postman_tags.py
+        Designed for context_processors.py and templatetags/postman_tags.py.
 
         """
         return self.inbox(user, related=False, option=OPTION_MESSAGES).filter(read_at__isnull=True).count()
@@ -244,7 +244,7 @@ class MessageManager(models.Manager):
         """
         Return a field-lookups filter as a permission controller for a reply request.
 
-        The user must be the recipient of the accepted, non-deleted, message
+        The user must be the recipient of the accepted, non-deleted, message.
 
         """
         return models.Q(recipient=user) & models.Q(moderation_status=STATUS_ACCEPTED) & models.Q(recipient_deleted_at__isnull=True)
