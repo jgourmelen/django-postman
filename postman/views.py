@@ -24,6 +24,7 @@ except ImportError:
     from urlparse import urlsplit, urlunsplit
 from django.utils.timezone import now
 from django.utils.translation import ugettext as _, ugettext_lazy
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.generic import FormView, TemplateView, View
 
@@ -34,6 +35,7 @@ from .utils import format_subject, format_body
 
 login_required_m = method_decorator(login_required)
 csrf_protect_m = method_decorator(csrf_protect)
+never_cache_m = method_decorator(never_cache)
 
 
 ##########
@@ -70,6 +72,7 @@ class FolderMixin(NamespaceMixin, object):
     """Code common to the folders."""
     http_method_names = ['get']
 
+    @never_cache_m
     @login_required_m
     def dispatch(self, *args, **kwargs):
         return super(FolderMixin, self).dispatch(*args, **kwargs)
@@ -230,6 +233,7 @@ class WriteView(ComposeMixin, FormView):
     autocomplete_channels = None
     template_name = 'postman/write.html'
 
+    @never_cache_m
     @csrf_protect_m
     def dispatch(self, *args, **kwargs):
         if getattr(settings, 'POSTMAN_DISALLOW_ANONYMOUS', False):
@@ -286,6 +290,7 @@ class ReplyView(ComposeMixin, FormView):
     autocomplete_channel = None
     template_name = 'postman/reply.html'
 
+    @never_cache_m
     @csrf_protect_m
     @login_required_m
     def dispatch(self, request, message_id, *args, **kwargs):
@@ -331,6 +336,7 @@ class DisplayMixin(NamespaceMixin, object):
     formatters = (format_subject, format_body if getattr(settings, 'POSTMAN_QUICKREPLY_QUOTE_BODY', False) else None)
     template_name = 'postman/view.html'
 
+    @never_cache_m
     @login_required_m
     def dispatch(self, *args, **kwargs):
         return super(DisplayMixin, self).dispatch(*args, **kwargs)
