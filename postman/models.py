@@ -25,6 +25,7 @@ if getattr(settings, 'POSTMAN_I18N_URLS', False):
     from django.utils.translation import pgettext_lazy
 else:
     def pgettext_lazy(c, m): return m
+from django.views.decorators.debug import sensitive_variables
 
 from .query import PostmanQuery
 from .utils import email_visitor, notify_user
@@ -400,6 +401,7 @@ class Message(models.Model):
         """Return the number of accepted responses."""
         return self.next_messages.filter(moderation_status=STATUS_ACCEPTED).count()
 
+    @sensitive_variables('values')
     def quote(self, format_subject, format_body=None):
         """Return a dictionary of quote values to initiate a reply."""
         values = {'subject': format_subject(self.subject)[:self.SUBJECT_MAX_LENGTH]}

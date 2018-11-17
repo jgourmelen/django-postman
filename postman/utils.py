@@ -14,6 +14,7 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.views.decorators.debug import sensitive_variables
 
 # make use of a favourite notifier app such as django-notification
 # but if not installed or not desired, fallback will be to do basic emailing
@@ -32,6 +33,7 @@ if name and name in settings.INSTALLED_APPS:
     if name == 'mailer':  # the app didn't adjust to the signature change in Django 1.7 (last check: v1.2.2)
         mailer_send_mail = send_mail
         mailer_send_html_mail = import_module(name).send_html_mail
+        @sensitive_variables('subject', 'html_message', 'message')
         def send_mail(subject, message, from_email, recipient_list, **kwargs):
             html_message = kwargs.pop('html_message', None)
             if html_message:
@@ -43,6 +45,7 @@ else:
     # such as: headers, reply_to (as of Django 1.8),
     # while keeping the signature pattern for compatibility with a possible third-party mailer app.
     from django.core.mail import EmailMultiAlternatives
+    @sensitive_variables('subject', 'html_message', 'message')
     def send_mail(subject, message, from_email, recipient_list, **kwargs):
         html_message = kwargs.pop('html_message', None)
         send_kwargs = {}
@@ -65,6 +68,7 @@ PARAMS_EMAIL = getattr(settings, 'POSTMAN_PARAMS_EMAIL', None)
 WRAP_WIDTH = 55
 
 
+@sensitive_variables('body', 'quote')
 def format_body(sender, body, indent=_("> "), width=WRAP_WIDTH):
     """
     Wrap the text and prepend lines with a prefix.
@@ -84,6 +88,7 @@ def format_body(sender, body, indent=_("> "), width=WRAP_WIDTH):
     return ugettext("\n\n{sender} wrote:\n{body}\n").format(sender=sender, body=quote)
 
 
+@sensitive_variables('subject')
 def format_subject(subject):
     """
     Prepend a pattern to the subject, unless already there.
@@ -96,6 +101,7 @@ def format_subject(subject):
     return subject if re.match(pattern, subject, re.IGNORECASE) else str.format(subject=subject)
 
 
+@sensitive_variables('subject', 'html_message', 'message')
 def email(subject_template, message_template_name, recipient_list, object, action, site):
     """Compose and send an email."""
     context = {'site': site, 'object': object, 'action': action}

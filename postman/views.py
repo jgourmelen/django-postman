@@ -26,6 +26,7 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext as _, ugettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic import FormView, TemplateView, View
 
 from .fields import autocompleter_app
@@ -36,6 +37,7 @@ from .utils import format_subject, format_body
 login_required_m = method_decorator(login_required)
 csrf_protect_m = method_decorator(csrf_protect)
 never_cache_m = method_decorator(never_cache)
+sensitive_post_parameters_m = method_decorator(sensitive_post_parameters('subject', 'body'))
 
 
 ##########
@@ -233,6 +235,7 @@ class WriteView(ComposeMixin, FormView):
     autocomplete_channels = None
     template_name = 'postman/write.html'
 
+    @sensitive_post_parameters_m
     @never_cache_m
     @csrf_protect_m
     def dispatch(self, *args, **kwargs):
@@ -290,6 +293,7 @@ class ReplyView(ComposeMixin, FormView):
     autocomplete_channel = None
     template_name = 'postman/reply.html'
 
+    @sensitive_post_parameters_m
     @never_cache_m
     @csrf_protect_m
     @login_required_m
