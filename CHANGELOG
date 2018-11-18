@@ -2,6 +2,15 @@
 Django Postman changelog
 ========================
 
+Version 3.6.2, November 2018
+----------------------------
+- Tried to lower exposure of message properties (subject, body) in error reports.
+- Fixed issue #105, for privacy concern, do not cache views serving message related data.
+- Fixed issue #106, a union() error in Django.
+- Fixed issue #103, an adjustment for the case of Message model inheritance.
+- Fixed issue #101, for security concern, ignore the scheme and domain parts in the 'next' query param.
+- Made use of the new union() queryset operator.
+
 Version 3.6.1, December 2017
 ----------------------------
 - Fixed issue #98, a User.isXXX() adjustment missed in rev152.
