@@ -52,8 +52,9 @@ def _get_referer(request):
 
 def _get_safe_internal_url(urlstring):
     """Return the URL without the scheme part and the domain part, if present."""
-    sr = urlsplit(urlstring)
-    return urlunsplit(('', '', sr.path, sr.query, sr.fragment))
+    if urlstring:
+        sr = urlsplit(urlstring)
+        return urlunsplit(('', '', sr.path, sr.query, sr.fragment))
 
 
 ########
