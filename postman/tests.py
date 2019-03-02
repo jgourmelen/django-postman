@@ -1818,6 +1818,42 @@ class FiltersTest(BaseTest):
         self.check_compact_date(dt2, dt2.strftime('%d/%m/%y'))
 
 
+class ContextProcessorsTest(BaseTest):
+    """
+    Test the context processors.
+    """
+    def _check_inbox(self, urlname, num_extra_queries, value=''):
+        url = reverse('postman:' + urlname)
+        # SELECT "django_session"."... -------------\
+        # SAVEPOINT "s????_x?"         -\ always     \ +2 if
+        # RELEASE SAVEPOINT "s????_x?" -/ these two  / authenticated
+        # SELECT "auth_user"."...      -------------/
+        # SELECT COUNT(*) ...          -- when authenticated, +1 if the variable is evaluated
+        with self.assertNumQueries(2 + num_extra_queries):
+            response = self.client.get(url)
+        self.assertEqual(response.content, value.encode())  # content is bytestring
+
+    def check_inbox_without_eval(self, num_extra_queries=0):
+        return self._check_inbox('no_context_processors', num_extra_queries)
+
+    def check_inbox_with_eval(self, num_extra_queries=0, value=''):
+        return self._check_inbox('context_processors', num_extra_queries, value)
+
+    def test_inbox(self):
+        "Test {{ postman_unread_count }}."
+        self.check_inbox_without_eval()
+        self.check_inbox_with_eval()
+        self.assertTrue(self.client.login(username='foo', password='pass'))
+        self.check_inbox_without_eval(2)
+        self.check_inbox_with_eval(3, '0')
+        Message.objects.create(subject='s', recipient=self.user1)  # its status is not enough
+        self.check_inbox_without_eval(2)
+        self.check_inbox_with_eval(3, '0')
+        Message.objects.create(subject='s', recipient=self.user1, moderation_status=STATUS_ACCEPTED)
+        self.check_inbox_without_eval(2)
+        self.check_inbox_with_eval(3, '1')
+
+
 class TagsTest(BaseTest):
     """
     Test the template tags.

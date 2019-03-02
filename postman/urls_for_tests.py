@@ -17,7 +17,7 @@ if getattr(settings, 'POSTMAN_I18N_URLS', False):
     from django.utils.translation import pgettext_lazy
 else:
     def pgettext_lazy(c, m): return m
-from django.views.generic.base import RedirectView
+from django.views.generic.base import TemplateView, RedirectView
 
 from .views import (InboxView, SentView, ArchivesView, TrashView,
         WriteView, ReplyView, MessageView, ConversationView,
@@ -130,6 +130,11 @@ postman_patterns = [
     url(r'^reply_template/(?P<message_id>[\d]+)/$', ReplyView.as_view(template_name='postman/fake.html'), name='reply_template'),
     url(r'^view_template/(?P<message_id>[\d]+)/$', MessageView.as_view(template_name='postman/fake.html'), name='view_template'),
     url(r'^view_template/t/(?P<thread_id>[\d]+)/$', ConversationView.as_view(template_name='postman/fake.html'), name='view_conversation_template'),
+    # context processors
+    url(r'^context_processors/$', TemplateView.as_view(template_name='postman_for_tests/context_processors.html'), name='context_processors'),
+    url(r'^no_context_processors/$',
+        TemplateView.as_view(template_name='postman_for_tests/email_html_and_empty_txt.txt'),  # this one is fine, as it's empty
+        name='no_context_processors'),
 ]
 
 urlpatterns = [
