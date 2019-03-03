@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 from datetime import timedelta
 
-from django import VERSION
 from django.core.management.base import BaseCommand
 from django.db.models import Max, Count, F, Q
 from django.utils.timezone import now
@@ -16,20 +15,11 @@ class Command(BaseCommand):
     help = """Can be run as a cron job or directly to clean out old data from the database:
   Messages or conversations marked as deleted by both sender and recipient,
   more than a minimal number of days ago."""
-    if VERSION < (1, 8):
-        from optparse import make_option
-        option_list = BaseCommand.option_list + (
-            make_option(*ARGUMENT_ARGS, type='int',
-                help='The minimal number of days a message is kept marked as deleted, '
-                     'before to be considered for real deletion [default: %default]',
-                **ARGUMENT_KWARGS),
-        )
-    else:
-        def add_arguments(self, parser):
-            parser.add_argument(*ARGUMENT_ARGS, type=int,
-                help='The minimal number of days a message is kept marked as deleted, '
-                     'before to be considered for real deletion [default: %(default)s]',
-                **ARGUMENT_KWARGS)
+    def add_arguments(self, parser):
+        parser.add_argument(*ARGUMENT_ARGS, type=int,
+            help='The minimal number of days a message is kept marked as deleted, '
+                 'before to be considered for real deletion [default: %(default)s]',
+            **ARGUMENT_KWARGS)
 
     # no more NoArgsCommand and handle_noargs with Dj >= 1.8
     def handle(self, *args, **options):

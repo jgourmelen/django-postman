@@ -1978,8 +1978,6 @@ class UtilsTest(BaseTest):
         action = 'acceptance'
         site = None
         settings.POSTMAN_PARAMS_EMAIL = lambda context: {
-            'headers': {'Reply-To': 'someone@domain.tld', 'X-my-choice': 'my-value'}
-        } if VERSION < (1, 8) else {
             'reply_to': ['someone@domain.tld'],
             'headers': {'X-my-choice': 'my-value'}
         }
@@ -1990,18 +1988,12 @@ class UtilsTest(BaseTest):
         m.email = self.email
         email_visitor(m, action, site)
         msg = mail.outbox[0]
-        if VERSION < (1, 8):
-            self.assertEqual(msg.extra_headers['Reply-To'], 'someone@domain.tld')
-        else:
-            self.assertEqual(msg.reply_to, ['someone@domain.tld'])
+        self.assertEqual(msg.reply_to, ['someone@domain.tld'])
         self.assertEqual(msg.extra_headers['X-my-choice'], 'my-value')
 
         notify_user(m, action, site)
         msg = mail.outbox[1]
-        if VERSION < (1, 8):
-            self.assertEqual(msg.extra_headers['Reply-To'], 'someone@domain.tld')
-        else:
-            self.assertEqual(msg.reply_to, ['someone@domain.tld'])
+        self.assertEqual(msg.reply_to, ['someone@domain.tld'])
         self.assertEqual(msg.extra_headers['X-my-choice'], 'my-value')
 
     def test_get_order_by(self):

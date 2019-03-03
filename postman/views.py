@@ -5,10 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-try:
-    from django.contrib.sites.shortcuts import get_current_site  # Django 1.7
-except ImportError:
-    from django.contrib.sites.models import get_current_site
+from django.contrib.sites.shortcuts import get_current_site
 if VERSION < (1, 10):
     from django.core.urlresolvers import reverse
 else:
@@ -18,10 +15,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_text
-try:
-    from django.utils.six.moves.urllib.parse import urlsplit, urlunsplit  # Django 1.4.11, 1.5.5
-except ImportError:
-    from urlparse import urlsplit, urlunsplit
+from django.utils.six.moves.urllib.parse import urlsplit, urlunsplit  # Django 1.4.11, 1.5.5
 from django.utils.timezone import now
 from django.utils.translation import ugettext as _, ugettext_lazy
 from django.views.decorators.cache import never_cache
@@ -64,10 +58,7 @@ class NamespaceMixin(object):
     """Common code to manage the namespace."""
 
     def render_to_response(self, context, **response_kwargs):
-        if VERSION >= (1, 8):
-            self.request.current_app = self.request.resolver_match.namespace
-        else:
-            response_kwargs['current_app'] = self.request.resolver_match.namespace
+        self.request.current_app = self.request.resolver_match.namespace
         return super(NamespaceMixin, self).render_to_response(context, **response_kwargs)
 
 

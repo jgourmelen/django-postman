@@ -3,6 +3,7 @@ from types import MethodType
 
 from django import VERSION
 from django.db.models.sql.compiler import SQLCompiler
+from django.db.models.sql.constants import INNER
 from django.db.models.sql.query import Query
 from django.utils import six
 
@@ -52,19 +53,12 @@ class CompilerProxy(Proxy, SQLCompiler):
         qn = self.quote_name_unless_alias
         qn2 = self.connection.ops.quote_name
         alias = self.query.tables[0] if VERSION < (2, 0) else self.query.base_table
-        if VERSION >= (1, 8):
-            from_clause = self.query.alias_map[alias]
-            alias = from_clause.table_alias
-            clause_sql, _ = self.compile(from_clause)  # clause_sql, clause_params
-            clause = ' '.join(['FROM', clause_sql])
-            from django.db.models.sql.constants import INNER as inner_join
-        else:
-            # Django 1.4, 1.5: name, alias, join_type, lhs, lhs_col, col, nullable
-            # Django 1.6, 1.7: name, alias, join_type, lhs, join_cols, _, join_field
-            name, alias, _, _, _, _, _ = self.query.alias_map[alias]
-            alias_str = '' if alias == name else ' {0}'.format(alias)
-            clause = 'FROM {0}{1}'.format(qn(name), alias_str)
-            inner_join = self.query.INNER
+        # if VERSION >= (1, 8):
+        from_clause = self.query.alias_map[alias]
+        alias = from_clause.table_alias
+        clause_sql, _ = self.compile(from_clause)  # clause_sql, clause_params
+        clause = ' '.join(['FROM', clause_sql])
+        # else: <purged>
         index = sql.index(clause) + len(clause)
         extra_table, extra_params = self.union(self.query.pm_get_extra())
         opts = self.query.get_meta()
@@ -72,7 +66,7 @@ class CompilerProxy(Proxy, SQLCompiler):
         new_sql = [
             sql[:index],
             ' {0} ({1}) {2} ON ({3}.{4} = {2}.{5})'.format(
-                inner_join, extra_table, self.query.pm_alias_prefix, qn(alias), qn2_pk_col, qn2_pk_col),
+                INNER, extra_table, self.query.pm_alias_prefix, qn(alias), qn2_pk_col, qn2_pk_col),
         ]
         if index < len(sql):
             new_sql.append(sql[index:])

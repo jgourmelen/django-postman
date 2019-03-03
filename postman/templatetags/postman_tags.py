@@ -47,7 +47,7 @@ def or_me(value, arg):
     return _('<me>') if value == arg else value
 
 
-@register.filter(**({'expects_localtime': True, 'is_safe': False} if VERSION >= (1, 4) else {}))
+@register.filter(**{'expects_localtime': True, 'is_safe': False})
 def compact_date(value, arg):
     """
     Output a date as short as possible.

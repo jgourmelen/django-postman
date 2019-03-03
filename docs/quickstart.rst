@@ -6,19 +6,18 @@ Quick start guide
 Requisites and dependances
 --------------------------
 
-Python version >= 2.6 or >= 3.3
+Python version >= 2.7 or >= 3.3
 
 Some reasons:
 
+* (2.7) minimum required by Django 1.8
 * (2.6) use of ``str.format()``
 
-Django version >= 1.5 on py2, >= 1.5.5 on py3
+Django version >= 1.8
 
 Some reasons:
 
-* (1.5/py2) ``url`` template tag syntax
-* (1.5.5/py3) Six version >= 1.4.0
-* (1.4.2) use of the Six library for supporting Python 2 and 3 in a single codebase
+* (1.8) for ``django.db.models.Value``
 
 Installation
 ------------
