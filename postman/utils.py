@@ -60,6 +60,12 @@ DISABLE_USER_EMAILING = getattr(settings, 'POSTMAN_DISABLE_USER_EMAILING', False
 FROM_EMAIL = getattr(settings, 'POSTMAN_FROM_EMAIL', settings.DEFAULT_FROM_EMAIL)
 # custom parameters for emailing
 PARAMS_EMAIL = getattr(settings, 'POSTMAN_PARAMS_EMAIL', None)
+# support for custom user models that use a custom email field name
+if VERSION < (1, 11):
+    EMAIL_FIELD = 'email'
+else:
+    from django.contrib.auth import get_user_model
+    EMAIL_FIELD = get_user_model().get_email_field_name()
 
 # default wrap width; referenced in forms.py
 WRAP_WIDTH = 55
@@ -146,5 +152,6 @@ def notify_user(object, action, site):
         # the context key 'message' is already used in django-notification/models.py/send_now() (v0.2.0)
         notification.send(users=[user], label=label, extra_context={'pm_message': object, 'pm_action': action, 'pm_site': site})
     else:
-        if not DISABLE_USER_EMAILING and user.email and user.is_active:
-            email('postman/email_user_subject.txt', 'postman/email_user', [user.email], object, action, site)
+        email_address = getattr(user, EMAIL_FIELD, None)
+        if not DISABLE_USER_EMAILING and email_address and user.is_active:
+            email('postman/email_user_subject.txt', 'postman/email_user', [email_address], object, action, site)
