@@ -2,7 +2,7 @@
 If the default usage of the views suits you, simply use a line like
 this one in your root URLconf to set up the default URLs::
 
-    (r'^messages/', include('postman.urls', namespace='postman', app_name='postman')),
+    url(r'^messages/', include('postman.urls', namespace='postman')),
 
 Otherwise you may customize the behavior by passing extra parameters.
 

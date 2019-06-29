@@ -25,13 +25,13 @@ Examples::
 
     urlpatterns = patterns('postman.views',
         # ...
-        url(r'^write/(?:(?P<recipients>[^/#]+)/)?$',
+        re_path(r'^write/(?:(?P<recipients>[^/#]+)/)?$',
             WriteView.as_view(form_classes=(MyCustomWriteForm, MyCustomAnonymousWriteForm)),
             name='write'),
-        url(r'^reply/(?P<message_id>[\d]+)/$',
+        re_path(r'^reply/(?P<message_id>[\d]+)/$',
             ReplyView.as_view(form_class=MyCustomFullReplyForm),
             name='reply'),
-        url(r'^view/(?P<message_id>[\d]+)/$',
+        re_path(r'^view/(?P<message_id>[\d]+)/$',
             MessageView.as_view(form_class=MyCustomQuickReplyForm),
             name='view'),
         # ...
@@ -46,7 +46,7 @@ Example::
 
     urlpatterns = patterns('postman.views',
         # ...
-        url(r'^view/(?P<message_id>[\d]+)/$',
+        re_path(r'^view/(?P<message_id>[\d]+)/$',
             MessageView.as_view(template_name='my_custom_view.html'),
             name='view'),
         # ...
@@ -76,7 +76,7 @@ Example::
 
     urlpatterns = patterns('postman.views',
         # ...
-        url(r'^reply/(?P<message_id>[\d]+)/$',
+        re_path(r'^reply/(?P<message_id>[\d]+)/$',
             ReplyView.as_view(success_url='postman:inbox'),
             name='reply'),
         # ...
@@ -101,10 +101,10 @@ Examples::
 
     urlpatterns = patterns('postman.views',
         # ...
-        url(r'^reply/(?P<message_id>[\d]+)/$',
+        re_path(r'^reply/(?P<message_id>[\d]+)/$',
             ReplyView.as_view(formatters=(format_subject, format_body)),
             name='reply'),
-        url(r'^view/(?P<message_id>[\d]+)/$',
+        re_path(r'^view/(?P<message_id>[\d]+)/$',
             MessageView.as_view(formatters=(format_subject, format_body)),
             name='view'),
         # ...

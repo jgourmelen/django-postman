@@ -36,10 +36,10 @@ Example::
 
     urlpatterns = patterns('postman.views',
         # ...
-        url(r'^write/(?:(?P<recipients>[^/#]+)/)?$',
+        re_path(r'^write/(?:(?P<recipients>[^/#]+)/)?$',
             WriteView.as_view(auto_moderators=(mod1, mod2)),
             name='write'),
-        url(r'^reply/(?P<message_id>[\d]+)/$',
+        re_path(r'^reply/(?P<message_id>[\d]+)/$',
             ReplyView.as_view(auto_moderators=mod1),
             name='reply'),
         # ...

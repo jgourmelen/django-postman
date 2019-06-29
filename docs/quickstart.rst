@@ -84,7 +84,7 @@ You may specify some additional configuration options in your :file:`settings.py
 ``POSTMAN_DISABLE_USER_EMAILING``
     Set it to True if you do not want basic email notification to users.
     This setting does not apply to visitors (refer to ``POSTMAN_DISALLOW_ANONYMOUS``),
-    nor to a notifier application (refer to ``POSTMAN_NOTIFIER_APP``)
+    nor to a notifier application (refer to ``POSTMAN_NOTIFIER_APP``).
 
     *Defaults to*: False.
 
@@ -299,4 +299,4 @@ Examples
 
 :file:`urls.py`::
 
-    url(r'^messages/', include('postman.urls', namespace='postman', app_name='postman')),
+    url(r'^messages/', include('postman.urls', namespace='postman')),
