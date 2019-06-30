@@ -299,4 +299,4 @@ Examples
 
 :file:`urls.py`::
 
-    url(r'^messages/', include('postman.urls', namespace='postman')),
+    path('messages/', include('postman.urls', namespace='postman')),

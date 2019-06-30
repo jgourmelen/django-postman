@@ -280,10 +280,6 @@ class ViewTest(BaseTest):
         url = reverse('postman:inbox')  # do not test all urls, one is enough for proof
         self.assertEqual(url, '/messages/re%C3%A7us/')
 
-        if VERSION >= (1, 9):  # view_initkwargs was introduced in Dj 1.9 views.generic.base.View.as_view()
-            match = resolve('/messages/')  # check the index special case, redirected to inbox
-            self.assertEqual(match.func.view_initkwargs['url'], '/messages/re%C3%A7us/')
-
         # reset, otherwise 'postman:inbox' keeps its lazy translation and the following test_inbox will fail
         settings.POSTMAN_I18N_URLS = False
         self.reload_modules()
