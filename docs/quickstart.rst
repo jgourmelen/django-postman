@@ -109,6 +109,11 @@ You may specify some additional configuration options in your :file:`settings.py
 
     *Defaults to*: True.
 
+    Parameters are:
+
+    * user: an instance of ``settings.AUTH_USER_MODEL``.
+    * action, site: refer to the context variables described in section :ref:`for_visitors`.
+
     When a function or method is used, the returned value may be:
 
     * ``False`` (or ``None``) to prevent the sending.
