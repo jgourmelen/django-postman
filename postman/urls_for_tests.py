@@ -16,11 +16,12 @@ if getattr(settings, 'POSTMAN_I18N_URLS', False):
     from django.utils.translation import pgettext_lazy
 else:
     def pgettext_lazy(c, m): return m
-from django.views.generic.base import TemplateView, RedirectView
+from django.views.generic import TemplateView
 
 from .views import (InboxView, SentView, ArchivesView, TrashView,
         WriteView, ReplyView, MessageView, ConversationView,
-        ArchiveView, DeleteView, UndeleteView, MarkReadView, MarkUnreadView)
+        ArchiveView, DeleteView, UndeleteView, MarkReadView, MarkUnreadView,
+        IndexView)
 
 
 # user_filter function set
@@ -79,7 +80,7 @@ postman_patterns = [
     re_path(pgettext_lazy('postman_url', r'^undelete/$'), UndeleteView.as_view(), name='undelete'),
     re_path(pgettext_lazy('postman_url', r'^mark-read/$'), MarkReadView.as_view(), name='mark-read'),
     re_path(pgettext_lazy('postman_url', r'^mark-unread/$'), MarkUnreadView.as_view(), name='mark-unread'),
-    re_path(r'^$', RedirectView.as_view(pattern_name='postman:inbox', permanent=True)),
+    re_path(r'^$', IndexView.as_view()),
 
     # Customized set
     # 'success_url'

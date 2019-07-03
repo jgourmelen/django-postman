@@ -21,7 +21,7 @@ from django.utils.translation import ugettext as _, ugettext_lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
-from django.views.generic import FormView, TemplateView, View
+from django.views.generic import FormView, RedirectView, TemplateView, View
 
 from .fields import autocompleter_app
 from .forms import WriteForm, AnonymousWriteForm, QuickReplyForm, FullReplyForm
@@ -54,6 +54,21 @@ def _get_safe_internal_url(urlstring):
 ########
 # Views
 ########
+class IndexView(RedirectView):
+    """
+    Redirect to the inbox folder view, taking care to stay sticked to the targeted application instance
+    when there is more than one instance.
+
+    """
+    pattern_name = 'postman:inbox'
+    permanent = True
+
+    def get_redirect_url(self, *args, **kwargs):
+        return reverse(self.pattern_name,
+            args=args, kwargs=kwargs,
+            current_app=self.request.resolver_match.namespace)
+
+
 class NamespaceMixin(object):
     """Common code to manage the namespace."""
 
