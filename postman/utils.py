@@ -8,6 +8,7 @@ from django import VERSION
 from django.conf import settings
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
+from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext, ugettext_lazy as _
@@ -137,6 +138,27 @@ def email_visitor(object, action, site):
     email('postman/email_visitor_subject.txt', 'postman/email_visitor', [object.email], object, action, site)
 
 
+def _get_notification_approval(user, action, site):
+    """
+    For use by notify_user(). Supported syntaxes:
+    XX = 'myapp.mymodule.myfunc'  -> myfunc(user, action, site)
+    XX = 'myuser_method'  -> user.myuser_method(action, site)
+    XX = callable  -> callable(user, action, site)
+    return: None or False ; True ; 'some email address'
+
+    """
+    approval = getattr(settings, 'POSTMAN_NOTIFICATION_APPROVAL', True)
+    if isinstance(approval, six.string_types):
+        if '.' in approval:
+            mod_path, _, attr_name = approval.rpartition('.')
+            return getattr(import_module(mod_path), attr_name)(user, action, site)
+        else:
+            return getattr(user, approval)(action, site)
+    elif callable(approval):
+        return approval(user, action, site)
+    return approval
+
+
 def notify_user(object, action, site):
     """Notify a user."""
     if action == 'rejection':
@@ -152,6 +174,8 @@ def notify_user(object, action, site):
         # the context key 'message' is already used in django-notification/models.py/send_now() (v0.2.0)
         notification.send(users=[user], label=label, extra_context={'pm_message': object, 'pm_action': action, 'pm_site': site})
     else:
-        email_address = getattr(user, EMAIL_FIELD, None)
+        email_address = _get_notification_approval(user, action, site)
+        if email_address is True:
+            email_address = getattr(user, EMAIL_FIELD, None)
         if not DISABLE_USER_EMAILING and email_address and user.is_active:
             email('postman/email_user_subject.txt', 'postman/email_user', [email_address], object, action, site)

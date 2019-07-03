@@ -1992,6 +1992,33 @@ class UtilsTest(BaseTest):
         self.assertEqual(msg.reply_to, ['someone@domain.tld'])
         self.assertEqual(msg.extra_headers['X-my-choice'], 'my-value')
 
+    def check_notification_approval(self, m, setting, mail_number, email=None):
+        settings.POSTMAN_NOTIFICATION_APPROVAL = setting
+        self.reload_modules()
+        notify_user(m, 'acceptance', None)
+        self.assertEqual(len(mail.outbox), mail_number)
+        if mail_number:
+            self.assertEqual(mail.outbox[0].to, [email])
+            mail.outbox = []
+
+    def test_notification_approval(self):
+        "Test the POSTMAN_NOTIFICATION_APPROVAL setting."
+        m = self.c12()
+        # a constant
+        self.check_notification_approval(m, False, 0)
+        # a function
+        self.check_notification_approval(m, lambda user, action, site: None, 0)
+        self.check_notification_approval(m, lambda user, action, site: False, 0)
+        self.check_notification_approval(m, lambda user, action, site: True, 1, self.user2.email)
+        self.check_notification_approval(m,
+                lambda user, action, site: '{}_{}@domain.tld'.format(user.username, action), 1, 'bar_acceptance@domain.tld')
+        # for the following syntaxes, the other returned value variants are already checked with the preceding lambda functions
+        # a method name
+        self.user2.notification_approval = lambda action, site: 'bar_' + action  # patch to emulate a method of a custom user model
+        self.check_notification_approval(m, 'notification_approval', 1, 'bar_acceptance')
+        # a path to a function
+        self.check_notification_approval(m, 'postman.module_for_tests.notification_approval', 1, 'bar_acceptance@domain.tld')
+
     def test_get_order_by(self):
         "Test get_order_by()."
         self.assertEqual(get_order_by({}), None)

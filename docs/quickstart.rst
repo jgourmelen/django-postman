@@ -88,6 +88,55 @@ You may specify some additional configuration options in your :file:`settings.py
 
     *Defaults to*: False.
 
+``POSTMAN_NOTIFICATION_APPROVAL``
+    *New in version 3.7.0.*
+
+    A hook to control the email notification sending on a per user basis. It can act both as a go/no-go
+    and as a provider of an alternative email address.
+    For instance, it could be used to condition the notification to a profile preference of the user
+    or to implement a custom processing to deduce the final email address.
+    This setting does not apply to visitors (refer to ``POSTMAN_DISALLOW_ANONYMOUS``),
+    nor to a notifier application (refer to ``POSTMAN_NOTIFIER_APP``).
+    The value can be specified as:
+
+    * ``True`` to allow the sending in any case.
+    * A function, with these parameters: user, action, site.
+    * The full path to a function, as a string, whose import will be deferred. For example: 'myapp.mymodule.myfunc'.
+      This sort of reference can be useful when resolving circular import dependencies between applications or modules.
+      The parameters of the function are: user, action, site.
+    * The name of a method of a custom user model. The method is called on the user instance with these parameters: action, site.
+    * (not recommended) Any other value that can be evaluated as a boolean and, if True, as a string.
+
+    *Defaults to*: True.
+
+    When a function or method is used, the returned value may be:
+
+    * ``False`` (or ``None``) to prevent the sending.
+    * ``True`` to allow the sending, to the ordinary email address of the user.
+    * a string as the email address to use instead of the ordinary one.
+
+    Examples::
+
+        # settings.py ; one of:
+        POSTMAN_NOTIFICATION_APPROVAL = False
+        POSTMAN_NOTIFICATION_APPROVAL = lambda user, action, site: return !user.is_staff
+        POSTMAN_NOTIFICATION_APPROVAL = 'myapp.mymodule.notification_approval'
+        AUTH_USER_MODEL = 'myapp.MyUser'
+        POSTMAN_NOTIFICATION_APPROVAL = 'notification_approval'
+
+        # myapp/mymodule.py
+        def notification_approval(user, action, site):
+            return '{}@domain.tld'.format(user.username)
+
+        # myapp/models.py
+        class MyUser(AbstractBaseUser):
+            #...
+            def notification_approval(self, action, site):
+                return True if self.is_active else 'support@mydom.com'
+
+    Note: The ``POSTMAN_DISABLE_USER_EMAILING`` setting is kept for backward compatibility, but the same effect can be obtained
+    with ``POSTMAN_NOTIFICATION_APPROVAL = False``.
+
 ``POSTMAN_FROM_EMAIL``
     *New in version 3.6.0.*
 
